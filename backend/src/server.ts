@@ -16,7 +16,7 @@ app.get("/", (_req: Request, res: Response) => {
   res.json({ message: "Сервер запущен и работает!" });
 });
 
-app.use('/services', services);
+app.use('/api/services', services);
 
 // Fallback for unhandled routes (404 Not Found)
 app.all(/.*/, (req, res, next) => {
