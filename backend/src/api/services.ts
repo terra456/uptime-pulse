@@ -1,8 +1,8 @@
 import express from "express";
-import { prisma } from "../lib/prisma.js"
+import { prisma } from "../lib/prisma.js";
 import { AppError } from "../utils/app-error.js";
 import { validate } from "uuid";
-
+import { scheduleCronForUrl } from "../lib/scaner.js";
 
 const router = express.Router();
 
@@ -16,9 +16,13 @@ router.post('/', async (req, res) => {
   } catch (_) {
     throw new AppError('url incorrect', 400);
   }
+
   const service = await prisma.service.create({
     data: {url, name}
   });
+
+  scheduleCronForUrl(service);
+
   res.status(202);
   res.send(service);
 });
@@ -27,6 +31,7 @@ router.get('/', async (req, res) => {
   const services = await prisma.service.findMany();
   res.send(services);
 });
+
 router.get('/:id/logs', async (req, res) => {
   const path = req.url;
   const id = path.split('/')[1];
