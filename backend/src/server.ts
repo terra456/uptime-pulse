@@ -3,6 +3,7 @@ import cors from "cors";
 import services from "./api/services.js";
 import { errorHandler } from "./middlewares/error-handler.js";
 import { AppError } from "./utils/app-error.js";
+import { initScaner } from "./lib/scaner.js";
 
 const app = express();
 const PORT = 3000;
@@ -26,7 +27,8 @@ app.all(/.*/, (req, res, next) => {
 // GLOBAL ERROR HANDLER MUST BE LAST
 app.use(errorHandler);
 
-// Запуск сервера
 app.listen(PORT, () => {
   console.log(`Server is start on http://localhost:${PORT}`);
+  //запускаем сканер после старта сервера
+  initScaner();
 });
