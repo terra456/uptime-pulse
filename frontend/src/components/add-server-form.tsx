@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
-import type { ServerData } from "@/App";
+import type { ServerData, ServerFormFields } from "@/types/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-interface FormFields {
-  name: string;
-  url: string;
-  interval: string; // Например, добавим интервал проверки (5 мин, 10 мин)
-}
+import { useAddNewServerMutation, useEditServerMutation } from "@/services/api";
 
 interface AddServerFormProps {
   initialData: ServerData | null;
@@ -15,11 +10,14 @@ interface AddServerFormProps {
 }
 
 export function AddServerForm({ initialData, onClose }: AddServerFormProps) {
-  const [formData, setFormData] = useState<FormFields>({
+  const [formData, setFormData] = useState<ServerFormFields>({
     name: "",
     url: "",
     interval: "5", // значение по умолчанию
   });
+
+  const [addNewServer, { isLoading }] = useAddNewServerMutation();
+  const [updateServer, updateStatus] = useEditServerMutation();
 
   useEffect(() => {
     if (initialData) {
@@ -47,8 +45,15 @@ export function AddServerForm({ initialData, onClose }: AddServerFormProps) {
   const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     console.log("Отправляем данные формы:", formData);
-    // Тут будет fetch-запрос на бэкенд (POST или PUT)
-    onClose();
+    try {
+      initialData
+        ? updateServer({ id: initialData.id, ...formData })
+        : addNewServer(formData);
+    } catch (e) {
+      console.error("Failed to save the server: ");
+    } finally {
+      onClose();
+    }
   };
 
   return (
@@ -77,7 +82,7 @@ export function AddServerForm({ initialData, onClose }: AddServerFormProps) {
         <Button variant="outline" onClick={onClose}>
           Отмена
         </Button>
-        <Button type="submit">
+        <Button type="submit" disabled={isLoading || updateStatus.isLoading}>
           {initialData ? "Сохранить изменения" : "Запустить мониторинг"}
         </Button>
       </div>
