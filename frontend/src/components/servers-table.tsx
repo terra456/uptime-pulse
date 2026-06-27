@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import type { ServerData } from "@/App";
+import type { ServerData } from "@/types/types";
 import { Pencil, Trash2 } from "lucide-react";
 
 interface ServerTableProps {

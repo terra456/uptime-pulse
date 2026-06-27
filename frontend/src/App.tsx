@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Footer } from "@/components/footer";
@@ -8,14 +8,8 @@ import { AddServerForm } from "@/components/add-server-form";
 import { ServersTable } from "@/components/servers-table";
 import { LogsTable } from "@/components/logs-table";
 import { DeleteServerConfirm } from "@/components/delete-server-confirm";
-
-export interface ServerData {
-  id: string;
-  name: string;
-  url: string;
-  interval: number;
-  status: "UP" | "DOWN" | "UNKNOWN";
-}
+import type { ServerData } from "@/types/types";
+import { useGetServersQuery } from "@/services/api";
 
 type ModalAction =
   | { type: "create" }
@@ -24,46 +18,10 @@ type ModalAction =
   | { type: "delete"; server: ServerData }
   | null; // null означает, что все окна закрыты
 
-const data: ServerData[] = [
-  {
-    id: "jerfewkr",
-    name: "first",
-    url: "http://first.ru",
-    interval: 60,
-    status: "UP",
-  },
-  {
-    id: "irjerew",
-    name: "second",
-    url: "http://second.ru",
-    interval: 60,
-    status: "DOWN",
-  },
-  {
-    id: "beoiejrwe",
-    name: "fird",
-    url: "http://fird.ru",
-    interval: 60,
-    status: "UNKNOWN",
-  },
-];
-
 export default function App() {
-  const [servers, setServers] = useState<ServerData[]>([]);
   const [action, setAction] = useState<ModalAction>(null);
 
-  useEffect(() => {
-    setServers(data);
-    // fetch("/api/servers") // Замените на ваш реальный URL
-    //   .then((res) => res.json())
-    //   .then((data) => setServers(data))
-    //   .catch((err) => console.error("Ошибка загрузки серверов:", err));
-  }, []);
-
-  const handleDeleteSuccess = (id: string) => {
-    setServers((prev) => prev.filter((s) => s.id !== id));
-    setAction(null); // Закрываем окно
-  };
+  const { data: servers = [], isLoading, isError } = useGetServersQuery();
 
   return (
     <ThemeProvider defaultTheme="system" storageKey="uptime-pulse-theme">
@@ -85,7 +43,25 @@ export default function App() {
             </Button>
           </div>
 
-          <ServersTable servers={servers} onAction={setAction} />
+          {isLoading && (
+            <div className="flex items-center justify-center py-12 text-sm text-muted-foreground animate-pulse">
+              Синхронизация с сервером и получение данных...
+            </div>
+          )}
+
+          {isError && (
+            <div className="text-center py-8 text-sm text-destructive bg-destructive/5 rounded-lg border border-destructive/10 p-4">
+              Не удалось данные. Пожалуйста, проверьте соединение.
+            </div>
+          )}
+
+          {servers.length === 0 ? (
+            <div className="text-center py-8 text-sm text-destructive bg-destructive/5 rounded-lg border border-destructive/10 p-4">
+              У вас пока что не добавлено ни одного сервера для мониторинга.
+            </div>
+          ) : (
+            <ServersTable servers={servers} onAction={setAction} />
+          )}
 
           {/* 1. МОДАЛКА: СОЗДАНИЕ И РЕДАКТИРОВАНИЕ */}
           <BaseModal
@@ -142,7 +118,6 @@ export default function App() {
               <DeleteServerConfirm
                 server={action.server}
                 onCancel={() => setAction(null)}
-                onSuccess={handleDeleteSuccess}
               />
             )}
           </BaseModal>

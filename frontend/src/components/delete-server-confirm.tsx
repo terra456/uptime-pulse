@@ -1,31 +1,28 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { ServerData } from "@/App";
+import type { ServerData } from "@/types/types";
+import { useDeleteServerMutation } from "@/services/api";
 
 interface DeleteServerConfirmProps {
   server: ServerData;
   onCancel: () => void;
-  onSuccess: (id: string) => void;
 }
 
 export function DeleteServerConfirm({
   server,
   onCancel,
-  onSuccess,
 }: DeleteServerConfirmProps) {
-  const [loading, setLoading] = useState(false);
+  const [deleteServer, { isLoading: isDeleting }] = useDeleteServerMutation();
 
   const handleDelete = async () => {
-    setLoading(true);
     try {
-      // Отправляем DELETE запрос на бэкенд
-      // await fetch(`/api/servers/${server.id}`, { method: "DELETE" });
-      console.log(`delete not implement ${server.id}`);
-      onSuccess(server.id);
+      // Вызываем функцию удаления и ждем выполнения (.unwrap() развернет промис)
+      await deleteServer(server.id).unwrap();
+
+      // После успешного удаления просто закрываем модалку.
+      // Список серверов в фоне обновится САМ благодаря механизму тегов!
+      onCancel();
     } catch (err) {
-      console.error("Не удалось удалить сервер", err);
-    } finally {
-      setLoading(false);
+      console.error("Ошибка при удалении сервера с бэкенда:", err);
     }
   };
 
@@ -36,11 +33,15 @@ export function DeleteServerConfirm({
         будет проверяться на доступность.
       </p>
       <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onCancel} disabled={loading}>
+        <Button variant="outline" onClick={onCancel} disabled={isDeleting}>
           Отмена
         </Button>
-        <Button variant="destructive" onClick={handleDelete} disabled={loading}>
-          {loading ? "Удаление..." : "Да, удалить"}
+        <Button
+          variant="destructive"
+          onClick={handleDelete}
+          disabled={isDeleting}
+        >
+          {isDeleting ? "Удаление..." : "Да, удалить"}
         </Button>
       </div>
     </div>
