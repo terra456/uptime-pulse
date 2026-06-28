@@ -10,4 +10,5 @@ export type ServiceFormFields = {
   name: string;
   url: string;
   interval?: number;
+  isActive?: boolean;
 }

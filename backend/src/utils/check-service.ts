@@ -21,7 +21,7 @@ export async function checkService({id, url}: {id: string, url: string}): Promis
     Object.assign(result, {
       status: "DOWN",
       statusCode: null,
-      error: String(error),
+      error: String(e),
     });
   } finally {
     const end = performance.now(); // Фиксируем время завершения
