@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,38 +7,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Таблица сайтов, которые мы мониторим
 model Service {
-  id        String   @id @default(uuid()) // Уникальный ID (UUID безопаснее и профессиональнее инкремента)
-  name      String   // Понятное название (например, "Мой бэкенд")
-  url       String   // Ссылка для проверки (https://...)
-  interval  Int      @default(60) // Интервал проверки в секундах (по умолчанию 1 минута)
-  status    Status   @default(UNKNOWN) // Текущий статус сайта
+  id        String   @id @default(uuid())
+  name      String
+  url       String
+  interval  Int      @default(60)
+  status    Status   @default(UNKNOWN)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Связь: у одного сайта может быть много логов
   logs      Log[]
 }
 
-// Таблица логов (результатов проверок)
 model Log {
-  id         String   @id @default(uuid())
-  serviceId  String   // Ссылка на ID сайта
-  status     Status   // Статус в момент проверки (UP или DOWN)
-  statusCode Int?     // HTTP-ответ (например, 200, 404, 500). Может быть null, если сервер вообще не ответил
-  responseTime Int?   // Время ответа сервера в миллисекундах
-  error      String?  // Текст ошибки, если запрос упал (например, "ENOTFOUND")
-  createdAt  DateTime @default(now()) // Время проведения проверки
+  id           String   @id @default(uuid())
+  serviceId    String
+  status       Status
+  statusCode   Int?
+  responseTime Int?
+  error        String?
+  createdAt    DateTime @default(now())
+  service      Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
-  // Настройка связи с таблицей Service. При удалении сайта удалятся и его логи (onDelete: Cascade)
-  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-
-  // Индекс для ускорения выборки логов по конкретному сайту
   @@index([serviceId])
 }
 
-// Перечисление (Enum) для статусов, чтобы исключить опечатки в коде
 enum Status {
   UP
   DOWN

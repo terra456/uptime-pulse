@@ -35,7 +35,9 @@ export function scheduleCronForUrl(target: Service) {
 
 export async function initScaner() {
   try {
-    const pendingUrls = await prisma.service.findMany({});
+    const pendingUrls = await prisma.service.findMany({
+      where: { isActive: true }
+    });
 
     console.log(`[Система] Восстановление из БД: найдено ${pendingUrls.length} URL. Запуск cron...`);
     
