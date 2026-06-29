@@ -4,6 +4,7 @@ export interface ServerData {
   url: string;
   interval: number;
   status: "UP" | "DOWN" | "UNKNOWN";
+  isActive: boolean;
 }
 
 export interface LogData {
@@ -20,8 +21,9 @@ export interface ServerFormFields {
   name: string;
   url: string;
   interval: string; // Например, добавим интервал проверки (5 мин, 10 мин)
+  isActive: boolean;
 }
 
-export interface ServerUpgate extends ServerFormFields {
+export interface ServerUpdate extends ServerFormFields {
   id: string,
 }
