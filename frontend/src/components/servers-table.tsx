@@ -10,6 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import type { ServerData } from "@/types/types";
 import { Pencil, Trash2 } from "lucide-react";
+import { Switch } from "./ui/switch";
+import { useStartServerMutation, useStopServerMutation } from "@/services/api";
+import StatusSpan from "./status-span";
 
 interface ServerTableProps {
   servers: ServerData[];
@@ -17,6 +20,9 @@ interface ServerTableProps {
 }
 
 export function ServersTable({ servers, onAction }: ServerTableProps) {
+  const [startServer] = useStartServerMutation();
+  const [stopServer] = useStopServerMutation();
+
   return (
     <Table>
       <TableCaption>A list of servises.</TableCaption>
@@ -24,6 +30,7 @@ export function ServersTable({ servers, onAction }: ServerTableProps) {
         <TableRow>
           <TableHead className="w-25">Name</TableHead>
           <TableHead>URL</TableHead>
+          <TableHead>Active</TableHead>
           <TableHead>Interval</TableHead>
           <TableHead className="text-right">Status</TableHead>
           <TableHead className="text-center"></TableHead>
@@ -37,8 +44,23 @@ export function ServersTable({ servers, onAction }: ServerTableProps) {
                 {server.name}
               </TableCell>
               <TableCell className="text-left">{server.url}</TableCell>
-              <TableCell className="text-left">{server.interval}</TableCell>
-              <TableCell className="text-right">{server.status}</TableCell>
+              <TableCell className="text-left">
+                <Switch
+                  id="active-toggle"
+                  checked={server.isActive}
+                  onCheckedChange={async () =>
+                    server.isActive
+                      ? await stopServer(server.id).unwrap()
+                      : await startServer(server.id).unwrap()
+                  }
+                />
+              </TableCell>
+              <TableCell className="text-left">
+                {server.interval / 60}
+              </TableCell>
+              <TableCell className="text-right">
+                <StatusSpan status={server.status} />
+              </TableCell>
               <TableCell className="text-right space-x-2">
                 <Button
                   size="sm"

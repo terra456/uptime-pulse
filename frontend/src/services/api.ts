@@ -36,18 +36,18 @@ export const api = baseApi.injectEndpoints({
         invalidatesTags: ["Servers"],
       }),
 
-      startServer: builder.mutation<ServerData, ServerUpdate>({
+      startServer: builder.mutation<ServerData, string>({
         query: (id) => ({
           url: prefix(`/${id}/start`),
-          method: 'POST',
+          method: 'PATCH',
         }),
         invalidatesTags: ["Servers"],
       }),
 
-      stopServer: builder.mutation<ServerData, ServerUpdate>({
+      stopServer: builder.mutation<ServerData, string>({
         query: (id) => ({
           url: prefix(`/${id}/stop`),
-          method: 'POST',
+          method: 'PATCH',
         }),
         invalidatesTags: ["Servers"],
       }),

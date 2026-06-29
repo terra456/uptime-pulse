@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useGetLogsQuery } from "@/services/api";
-import type { LogData } from "@/types/types";
+import StatusSpan from "./status-span";
 
 interface LogsTableProps {
   id: string;
@@ -24,12 +24,6 @@ export function LogsTable({ id }: LogsTableProps) {
     pollingInterval: 60 * 1000,
     skip: !id, // не делать запрос, если id по какой-то причине пустой
   });
-
-  // Маппер стилей для статусов. Oxlint проверит, чтобы все варианты были учтены.
-  const statusStyles: Record<LogData["status"], string> = {
-    UP: "bg-green-500/10 text-green-500 border-green-500/20",
-    DOWN: "bg-red-500/10 text-red-500 border-red-500/20 animate-pulse", // Текст «DOWN» будет слегка пульсировать
-  };
 
   // Обработка состояния первичной загрузки
   if (isLoading) {
@@ -78,11 +72,7 @@ export function LogsTable({ id }: LogsTableProps) {
                 {log.createdAt.toString()}
               </TableCell>
               <TableCell className="text-left">
-                <span
-                  className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold tracking-wide uppercase ${statusStyles[log.status]}`}
-                >
-                  {log.status}
-                </span>
+                <StatusSpan status={log.status} />
               </TableCell>
               <TableCell className="text-left">{log.responseTime}</TableCell>
               <TableCell className="text-left">{log.statusCode}</TableCell>

@@ -16,6 +16,8 @@ type ModalAction =
   | { type: "edit"; server: ServerData }
   | { type: "logs"; server: ServerData }
   | { type: "delete"; server: ServerData }
+  | { type: "start"; server: ServerData }
+  | { type: "stop"; server: ServerData }
   | null; // null означает, что все окна закрыты
 
 export default function App() {
