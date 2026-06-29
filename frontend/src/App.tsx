@@ -39,7 +39,7 @@ export default function App() {
           <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
             Следите за доступностью ваших сайтов и сервисов в реальном времени.
           </p>
-          <div className="mt-8 flex justify-center gap-4">
+          <div className="m-8 flex justify-center gap-4">
             <Button size="lg" onClick={() => setAction({ type: "create" })}>
               Добавить сервер на мониторинг
             </Button>

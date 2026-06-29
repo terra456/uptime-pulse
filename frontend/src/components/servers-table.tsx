@@ -32,8 +32,8 @@ export function ServersTable({ servers, onAction }: ServerTableProps) {
           <TableHead>URL</TableHead>
           <TableHead>Active</TableHead>
           <TableHead>Interval</TableHead>
-          <TableHead className="text-right">Status</TableHead>
-          <TableHead className="text-center"></TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -58,7 +58,7 @@ export function ServersTable({ servers, onAction }: ServerTableProps) {
               <TableCell className="text-left">
                 {server.interval / 60}
               </TableCell>
-              <TableCell className="text-right">
+              <TableCell className="text-left">
                 <StatusSpan status={server.status} />
               </TableCell>
               <TableCell className="text-right space-x-2">
