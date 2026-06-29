@@ -30,7 +30,7 @@ router.post('/', async (req, res) => {
 });
 
 router.get('/', async (req, res) => {
-  const services = await prisma.service.findMany();
+  const services = await prisma.service.findMany({ orderBy: { createdAt: "desc" } });
   res.send(services);
 });
 
@@ -120,7 +120,7 @@ router.patch('/:id/stop', async (req, res) => {
   try {
     const service = await prisma.service.update({
       where: { id },
-      data: { isActive: false },
+      data: { isActive: false, status: "UNKNOWN" },
     });
     if (!service) {
       throw new NotFoundError(`Service with id ${id} not found`);
