@@ -4,16 +4,23 @@ import { AppError, NotFoundError } from "../utils/app-error.js";
 import { validate } from "uuid";
 import { scheduleCronForUrl, stopCronForUrl } from "../lib/scaner.js";
 import { validateServiceData } from "../utils/validate-service-data.js";
+import { validateAuth } from "../middlewares/auth-middleware.js";
 
 const router = express.Router();
 
-router.post('/', async (req, res) => {
+router.post('/', validateAuth(true), async (req, res) => {
+  // Достаем id текущего пользователя из мидлвари
+  const currentUserId = req.user!.userId;
+
   const serviceData = req.body;
   try {
     const validData = validateServiceData(serviceData);
 
     const service = await prisma.service.create({
-      data: validData
+      data: {
+        userId: currentUserId,
+        ...validData,
+      },
     });
 
     if (service.isActive === true) {
@@ -29,13 +36,27 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.get('/', async (req, res) => {
-  const services = await prisma.service.findMany({ orderBy: { createdAt: "desc" } });
-  res.send(services);
+router.get('/', validateAuth(false), async (req, res) => {
+  if (req.user) {
+    const currentUserId = req.user!.userId;
+  
+    const services = await prisma.service.findMany({
+      where: { userId: currentUserId },
+      orderBy: { createdAt: "desc" }
+    });
+    res.send(services);
+  } else {
+    const services = await prisma.service.findMany({
+      where: { userId: null },
+      orderBy: { createdAt: "desc" }
+    });
+    res.send(services);
+  }
 });
 
-router.get('/:id', async (req, res) => {
-  const { id } = req.params;
+router.get('/:id', validateAuth(false), async (req, res) => {
+  const id = req.params.id as string;
+
   if (id && validate(id)) {
     try {
       const service = await prisma.service.findFirst({
@@ -56,8 +77,12 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
-  const { id } = req.params;
+router.put('/:id', validateAuth(true), async (req, res) => {
+  const id = req.params.id as string; 
+  
+  // Достаем id текущего пользователя из мидлвари
+  const currentUserId = req.user!.userId;
+
   const data = req.body;
 
   if (!(id && validate(id))) {
@@ -65,6 +90,18 @@ router.put('/:id', async (req, res) => {
   }
 
   try {
+    const existingService = await prisma.service.findFirst({
+      where: {
+        id: id,
+        userId: currentUserId, // Защита: чужой сервис изменить нельзя
+      },
+    });
+
+    if (!existingService) {
+      // Если сервиса нет ИЛИ он чужой — отдаем 404 (чтобы не выдавать существование чужих id)
+      throw new NotFoundError(`Service with id ${id} not found`);
+    }
+
     const validData = validateServiceData(data);
     const service = await prisma.service.update({
       where: { id },
@@ -82,8 +119,8 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.patch('/:id/start', async (req, res) => {
-  const { id } = req.params;
+router.patch('/:id/start', validateAuth(false), async (req, res) => {
+  const id = req.params.id as string;
 
   if (!(id && validate(id))) {
     throw new AppError('id incorrect', 400);
@@ -110,8 +147,8 @@ router.patch('/:id/start', async (req, res) => {
   }
 });
 
-router.patch('/:id/stop', async (req, res) => {
-  const { id } = req.params;
+router.patch('/:id/stop', validateAuth(false), async (req, res) => {
+  const id = req.params.id as string;
 
   if (!(id && validate(id))) {
     throw new AppError('id incorrect', 400);
@@ -138,16 +175,29 @@ router.patch('/:id/stop', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
-  const { id } = req.params;
+router.delete('/:id', validateAuth(true), async (req, res) => {
+  const id = req.params.id as string; 
+  
+  // Достаем id текущего пользователя из мидлвари
+  const currentUserId = req.user!.userId;
+
   if (id && validate(id)) {
     try {
+      const existingService = await prisma.service.findFirst({
+        where: {
+          id: id,
+          userId: currentUserId, // Защита: чужой сервис удалить нельзя
+        },
+      });
+
+      if (!existingService) {
+        // Если сервиса нет ИЛИ он чужой — отдаем 404 (чтобы не выдавать существование чужих id)
+        throw new NotFoundError(`Service with id ${id} not found`);
+      }
+
       const service = await prisma.service.delete({
         where: { id },
       });
-      if (!service) {
-        throw new NotFoundError(`Service with id ${id} not found`);
-      }
 
       //останавливем сканирование
       stopCronForUrl(id);
@@ -164,8 +214,9 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-router.get('/:id/logs', async (req, res) => {
-  const { id } = req.params;
+router.get('/:id/logs', validateAuth(false), async (req, res) => {
+  const id = req.params.id as string;
+
   if (id && validate(id)) {
     try {
       const logs = await prisma.log.findMany({
@@ -185,9 +236,25 @@ router.get('/:id/logs', async (req, res) => {
   }
 });
 
-router.delete('/:id/logs', async (req, res) => {
-  const { id } = req.params;
+router.delete('/:id/logs', validateAuth(true), async (req, res) => {
+  const id = req.params.id as string; 
+  
+  // Достаем id текущего пользователя из мидлвари
+  const currentUserId = req.user!.userId;
+
   if (id && validate(id)) {
+    const existingService = await prisma.service.findFirst({
+        where: {
+          id: id,
+          userId: currentUserId, // Защита: чужой сервис удалить нельзя
+        },
+      });
+
+      if (!existingService) {
+        // Если сервиса нет ИЛИ он чужой — отдаем 404 (чтобы не выдавать существование чужих id)
+        throw new NotFoundError(`Service with id ${id} not found`);
+      }
+
     const logs = await prisma.log.deleteMany({ where: { serviceId: id } });
     res.status(204).end();
   } else {

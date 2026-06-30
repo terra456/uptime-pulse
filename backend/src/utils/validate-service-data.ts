@@ -1,4 +1,4 @@
-import type { ServiceFormFields } from "../types.ts/types.js";
+import type { ServiceFormFields } from "../types/types.js";
 import { AppError } from "./app-error.js";
 
 export function validateServiceData(data: any): ServiceFormFields | never {
