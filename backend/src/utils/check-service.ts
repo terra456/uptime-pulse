@@ -1,5 +1,5 @@
 import { error } from "node:console";
-import type { ServiceResponse } from "../types.ts/types.js";
+import type { ServiceResponse } from "../types/types.js";
 
 export async function checkService({id, url}: {id: string, url: string}): Promise<ServiceResponse> {
   const start = performance.now();

@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma.js";
-import type { ServiceResponse } from "../types.ts/types.js";
+import type { ServiceResponse } from "../types/types.js";
 
 export async function saveResponse(response: ServiceResponse) {
   try {

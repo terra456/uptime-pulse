@@ -1,6 +1,7 @@
 import express, { type NextFunction, type Request, type Response } from "express";
 import cors from "cors";
 import services from "./api/services.js";
+import auth from "./api/auth.js";
 import { errorHandler } from "./middlewares/error-handler.js";
 import { AppError } from "./utils/app-error.js";
 import { initScaner } from "./lib/scaner.js";
@@ -18,6 +19,7 @@ app.get("/", (_req: Request, res: Response) => {
 });
 
 app.use('/api/services', services);
+app.use('/api/auth', auth);
 
 // Fallback for unhandled routes (404 Not Found)
 app.all(/.*/, (req, res, next) => {
