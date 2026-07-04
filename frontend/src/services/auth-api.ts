@@ -53,6 +53,9 @@ export const authApi = baseApi.injectEndpoints({
               refreshToken: data.refreshToken,
             })
           );
+
+          dispatch(baseApi.util.invalidateTags(['Servers']));
+          
         } catch (err) {
           // Если логин упал с ошибкой (например, неверный пароль),
           // здесь ничего делать не нужно — ошибка обработается в самом React-компоненте

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   selectIsAuthenticated,
@@ -14,8 +13,13 @@ import { BaseModal } from "@/components/base-modal";
 import { AuthForm } from "./auth-form";
 import { useLogoutUserMutation } from "@/services/auth-api";
 import { toast } from "sonner";
+import { baseApi } from "@/services/base-api";
 
-export function Header() {
+interface HeaderProps {
+  isInitializing?: boolean;
+}
+
+export function Header({ isInitializing }: HeaderProps) {
   const dispatch = useDispatch();
 
   const isAuthenticated = useSelector(selectIsAuthenticated);
@@ -42,8 +46,8 @@ export function Header() {
     } finally {
       // В любом случае очищаем Redux-стейт и localStorage на фронтенде
       dispatch(logOut());
-      // Здесь можно сделать редирект на главную страницу, если нужно:
-      // navigate('/');
+
+      dispatch(baseApi.util.invalidateTags(["Servers"]));
     }
   };
 
@@ -58,7 +62,9 @@ export function Header() {
 
         <div className="flex items-center gap-4">
           <ThemeToggle />
-          {isAuthenticated ? (
+          {isInitializing ? (
+            <div className="h-9 w-20 animate-pulse rounded bg-muted" />
+          ) : isAuthenticated ? (
             <>
               {/* Если вошел — показываем его логин и кнопку Выйти */}
               <span className="text-sm text-muted-foreground hidden sm:inline">
@@ -69,7 +75,7 @@ export function Header() {
               </span>
               <Button
                 variant="outline"
-                onClick={() => dispatch(logOut())}
+                onClick={handleLogout}
                 disabled={isLoading}
               >
                 {isLoading ? "Выход..." : "Выйти"}

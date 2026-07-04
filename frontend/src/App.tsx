@@ -31,13 +31,19 @@ type ModalAction =
 
 export default function App() {
   const [action, setAction] = useState<ModalAction>(null);
-
-  const { data: servers = [], isLoading, isError } = useGetServersQuery();
-
   const dispatch = useDispatch();
 
   // Локальный стейт, чтобы не показывать интерфейс, пока проверяется сессия
   const [isInitializing, setIsInitializing] = useState(true);
+
+  const {
+    data: servers = [],
+    isLoading,
+    isError,
+  } = useGetServersQuery(undefined, {
+    // Запрос НЕ уйдет на бэкенд, пока isInitializing равен true
+    skip: isInitializing,
+  });
 
   // Хук мутации из RTK Query
   const [refreshTokens] = useRefreshTokensMutation();
@@ -113,7 +119,7 @@ export default function App() {
     <ThemeProvider defaultTheme="system" storageKey="uptime-pulse-theme">
       <div className="relative flex min-h-screen flex-col bg-background text-foreground">
         {/* Подключаем наш хедер */}
-        <Header />
+        <Header isInitializing={isInitializing} />
 
         {/* Главный контент страницы */}
         <main className="flex-1 mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 text-center">
