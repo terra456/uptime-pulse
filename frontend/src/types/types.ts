@@ -27,3 +27,13 @@ export interface ServerFormFields {
 export interface ServerUpdate extends ServerFormFields {
   id: string,
 }
+
+export interface AuthResponse {
+  message: string,
+  accessToken: string,
+  refreshToken: string,
+  user: {
+    id: string
+    login: string
+  }
+}
