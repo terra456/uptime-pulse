@@ -16,7 +16,7 @@ export const validateAuth = (isStrict = true) => {
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       if (isStrict) {
-        throw new AppError('Доступ запрещен. Токен отсутствует', 401);
+        throw new AppError('Доступ запрещен. Пользователь не авторизован', 401);
       }
       // Если проверка мягкая — просто идем дальше без пользователя
       return next();
@@ -26,7 +26,7 @@ export const validateAuth = (isStrict = true) => {
     const token = authHeader.split(' ')[1];
 
     if (!token) {
-      throw new AppError('Доступ запрещен. Токен отсутствует', 401);
+      throw new AppError('Доступ запрещен. Пользователь не авторизован', 401);
     }
 
     try {

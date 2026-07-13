@@ -41,7 +41,12 @@ router.get('/', validateAuth(false), async (req, res) => {
     const currentUserId = req.user!.userId;
   
     const services = await prisma.service.findMany({
-      where: { userId: currentUserId },
+      where: { 
+        OR: [
+          { userId: currentUserId },
+          { userId: null }
+        ]
+      },
       orderBy: { createdAt: "desc" }
     });
     res.send(services);

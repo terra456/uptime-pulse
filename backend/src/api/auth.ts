@@ -210,4 +210,25 @@ router.post('/refresh', async (req, res) => {
   }
 });
 
+// TODO поправить ошибки
+router.post('/logout', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (refreshToken) {
+      // Просто удаляем запись о сессии из таблицы RefreshToken
+      await prisma.refreshToken.deleteMany({
+        where: { token: refreshToken },
+      });
+    }
+
+    res.status(200).send({ message: 'Успешный выход из системы' });
+  } catch (error) {
+    console.error('Ошибка при логауте:', error);
+    // Даже если в БД произошла ошибка (например, токена уже нет), 
+    // для клиента возвращаем 200, так как фронтенд всё равно сотрет стейт
+    res.status(200).send({ message: 'Успешный выход из системы' });
+  }
+});
+
 export default router;
