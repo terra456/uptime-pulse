@@ -13,6 +13,8 @@ import { Pencil, Trash2 } from "lucide-react";
 import { Switch } from "./ui/switch";
 import { useStartServerMutation, useStopServerMutation } from "@/services/api";
 import StatusSpan from "./status-span";
+import { openAuthModal, selectIsAuthenticated } from "@/store/auth-slice";
+import { useDispatch, useSelector } from "react-redux";
 
 interface ServerTableProps {
   servers: ServerData[];
@@ -22,6 +24,22 @@ interface ServerTableProps {
 export function ServersTable({ servers, onAction }: ServerTableProps) {
   const [startServer] = useStartServerMutation();
   const [stopServer] = useStopServerMutation();
+
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const handleAction = (callback: () => void) => {
+    if (!isAuthenticated) {
+      // Кнопка активна для клика, но вместо действия открывает модалку с пояснением!
+      dispatch(
+        openAuthModal(
+          "Войдите в аккаунт, чтобы получить возможность редактировать данные",
+        ),
+      );
+      return;
+    }
+
+    callback();
+  };
 
   return (
     <Table>
@@ -73,7 +91,9 @@ export function ServersTable({ servers, onAction }: ServerTableProps) {
                   variant="ghost"
                   size="icon" // Делает кнопку квадратной
                   className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                  onClick={() => onAction({ type: "edit", server })}
+                  onClick={() =>
+                    handleAction(() => onAction({ type: "edit", server }))
+                  }
                   title="Изменить настройки" // Подсказка при наведении
                 >
                   <Pencil className="h-4 w-4" /> {/* Иконка вместо текста */}
@@ -85,7 +105,9 @@ export function ServersTable({ servers, onAction }: ServerTableProps) {
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => onAction({ type: "delete", server })}
+                  onClick={() =>
+                    handleAction(() => onAction({ type: "delete", server }))
+                  }
                   title="Удалить сервер"
                 >
                   <Trash2 className="h-4 w-4" />

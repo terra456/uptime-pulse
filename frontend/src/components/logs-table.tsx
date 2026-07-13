@@ -7,11 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  useClearLogsMutation,
-  useDeleteServerMutation,
-  useGetLogsQuery,
-} from "@/services/api";
+import { useClearLogsMutation, useGetLogsQuery } from "@/services/api";
 import StatusSpan from "./status-span";
 import { Button } from "./ui/button";
 import { dateConverter } from "@/lib/date-converter";
@@ -35,8 +31,8 @@ export function LogsTable({ id }: LogsTableProps) {
 
   const handleClear = async () => {
     try {
-      // Вызываем функцию удаления и ждем выполнения (.unwrap() развернет промис)
       await clearLogs(id).unwrap();
+      // Вызываем функцию удаления и ждем выполнения (.unwrap() развернет промис)
     } catch (err) {
       console.error("Ошибка при удалении логов:", err);
     }
