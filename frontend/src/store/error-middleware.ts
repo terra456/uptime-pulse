@@ -6,15 +6,16 @@ export const rtkQueryErrorMiddleware: Middleware = () => (next) => (action) => {
   if (isRejectedWithValue(action)) {
     const payload = action.payload as any;
 
-    // 1. Игнорируем ошибку 401 для процесса /refresh, чтобы не спамить тостами,
-    // когда у пользователя просто планово истек access-токен в фоне
-    if (action.meta?.arg?.endpointName === 'refreshTokens' || payload?.status === 401) {
+    // 1. Игнорируем ошибку 401 только для процесса /refreshTokens,
+    // чтобы не спамить тостами, когда access-токен просто истек и обновление не прошло.
+    const endpointName = (action.meta?.arg as any)?.endpointName;
+    if (endpointName === 'refreshTokens' && payload?.status === 401) {
       return next(action);
     }
 
     // 2. Вытаскиваем сообщение об ошибке, которое прислал наш Express-сервер
     // Наш бэк возвращает { error: "Текст ошибки" }, в RTK Query это лежит в payload.data.error
-    const serverMessage = payload?.data?.error;
+    const serverMessage = payload?.data?.error || payload.data?.message;
     
     // Если бэк упал без внятного ответа, проверяем статус (например, 500 или нет сети)
     const fallbackMessage = payload?.status === 'FETCH_ERROR' 
