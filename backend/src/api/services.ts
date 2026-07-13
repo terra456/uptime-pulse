@@ -96,15 +96,15 @@ router.put('/:id', validateAuth(true), async (req, res) => {
 
   try {
     const existingService = await prisma.service.findFirst({
-      where: {
-        id: id,
-        userId: currentUserId, // Защита: чужой сервис изменить нельзя
-      },
+      where: { id: id }
     });
 
     if (!existingService) {
-      // Если сервиса нет ИЛИ он чужой — отдаем 404 (чтобы не выдавать существование чужих id)
       throw new NotFoundError(`Service with id ${id} not found`);
+    }
+
+    if (existingService.userId !== currentUserId) {
+      throw new AppError(`Вы не можете изменять данные других пользователей`, 401);
     }
 
     const validData = validateServiceData(data);
@@ -189,15 +189,15 @@ router.delete('/:id', validateAuth(true), async (req, res) => {
   if (id && validate(id)) {
     try {
       const existingService = await prisma.service.findFirst({
-        where: {
-          id: id,
-          userId: currentUserId, // Защита: чужой сервис удалить нельзя
-        },
+        where: { id: id }
       });
 
       if (!existingService) {
-        // Если сервиса нет ИЛИ он чужой — отдаем 404 (чтобы не выдавать существование чужих id)
         throw new NotFoundError(`Service with id ${id} not found`);
+      }
+
+      if (existingService.userId !== currentUserId) {
+        throw new AppError(`Вы не можете изменять данные других пользователей`, 401);
       }
 
       const service = await prisma.service.delete({
@@ -248,20 +248,28 @@ router.delete('/:id/logs', validateAuth(true), async (req, res) => {
   const currentUserId = req.user!.userId;
 
   if (id && validate(id)) {
-    const existingService = await prisma.service.findFirst({
-        where: {
-          id: id,
-          userId: currentUserId, // Защита: чужой сервис удалить нельзя
-        },
+    try {
+      const existingService = await prisma.service.findFirst({
+        where: { id: id }
       });
-
+  
       if (!existingService) {
-        // Если сервиса нет ИЛИ он чужой — отдаем 404 (чтобы не выдавать существование чужих id)
         throw new NotFoundError(`Service with id ${id} not found`);
       }
-
-    const logs = await prisma.log.deleteMany({ where: { serviceId: id } });
-    res.status(204).end();
+  
+      if (existingService.userId !== currentUserId) {
+        throw new AppError(`Вы не можете изменять данные других пользователей`, 401);
+      }
+  
+      const logs = await prisma.log.deleteMany({ where: { serviceId: id } });
+      res.status(204).end();
+      
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new Error('somthing wrong');
+    }
   } else {
     throw new AppError('id incorrect', 400);
   }
